@@ -1,4 +1,6 @@
-PyEagle
+
+
+PyEagle - (Use most of the Eagle ulp API from python)
 =======
 
 Open up eagle_python_dispatcher.ulp in the ulp/ path and customise the variables at the top. For your system
