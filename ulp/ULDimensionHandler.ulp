@@ -1,0 +1,96 @@
+/*
+ (C) Copyright 2013 Rob Watson rmawatson [at] hotmail.com  and others.
+
+ All rights reserved. This program and the accompanying materials
+ are made available under the terms of the GNU Lesser General Public License
+ (LGPL) version 2.1 which accompanies this distribution, and is available at
+ http://www.gnu.org/licenses/lgpl-2.1.html
+
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ Lesser General Public License for more details.
+
+ Contributors:
+     Rob Watson ( rmawatson [at] hotmail )
+*/
+
+/* ULDimensionHandler.ulp generated on 17/17/13 13:16:03 */
+
+#include "ULSupport.ulp"
+#include "ULTextHandler.ulp"
+#include "ULWireHandler.ulp"
+
+string ULDimensionHandler(UL_DIMENSION Dimension,string currentPath, string argument, char cacheMode)
+{
+	string baseName   = GetFirstPathItem(currentPath);
+	string nextPath   = GetNextPath(currentPath);
+	string baseType = GetFirstPathItem(nextPath);
+	char isLastPath = nextPath ? 0 : 1;
+
+    char   nextCacheMode = cacheMode;
+    string cacheResult;
+
+    if (cacheMode==CACHE_MODE_AHEAD && isLastPath)
+        nextCacheMode = CACHE_MODE_THIS;
+                        
+
+    if (cacheMode == CACHE_MODE_THIS)
+	{
+		cacheResult += intToStr(Dimension.dtype) + "?";
+		cacheResult += intToStr(Dimension.layer) + "?";
+		cacheResult += intToStr(Dimension.x1) + "?";
+		cacheResult += intToStr(Dimension.x2) + "?";
+		cacheResult += intToStr(Dimension.x3) + "?";
+		cacheResult += intToStr(Dimension.y1) + "?";
+		cacheResult += intToStr(Dimension.y2) + "?";
+		cacheResult += intToStr(Dimension.y3) + "?";
+		return cacheResult;
+	}
+	else if (baseName == "dtype")
+		return intToStr(Dimension.dtype);
+	else if (baseName == "layer")
+		return intToStr(Dimension.layer);
+	else if (baseName == "x1")
+		return intToStr(Dimension.x1);
+	else if (baseName == "x2")
+		return intToStr(Dimension.x2);
+	else if (baseName == "x3")
+		return intToStr(Dimension.x3);
+	else if (baseName == "y1")
+		return intToStr(Dimension.y1);
+	else if (baseName == "y2")
+		return intToStr(Dimension.y2);
+	else if (baseName == "y3")
+		return intToStr(Dimension.y3);
+	string splitLoopMember[];
+	int accessIndex=0,currentIndex=0;
+	
+	if (!isLastPath)
+	{	
+	    nextPath = GetNextPath(nextPath);
+		strsplit(splitLoopMember,baseType,'^');
+		accessIndex = strtol(splitLoopMember[1]);
+	}
+
+	if (baseName == "texts"){
+		Dimension.texts(Text)  { 
+			if (!isLastPath){ if (currentIndex  == accessIndex) { return ULTextHandler(Text, nextPath,argument,0); } }
+			else if (nextCacheMode==CACHE_MODE_THIS) { cacheResult += ":" + ULTextHandler(Text, "", "",CACHE_MODE_THIS); } 
+			currentIndex++;
+		}
+		if (nextCacheMode==CACHE_MODE_THIS) return cacheResult;
+		else return intToStr(currentIndex);
+	
+	} else if (baseName == "wires"){
+		Dimension.wires(Wire)  { 
+			if (!isLastPath){ if (currentIndex  == accessIndex) { return ULWireHandler(Wire, nextPath,argument,0); } }
+			else if (nextCacheMode==CACHE_MODE_THIS) { cacheResult += ":" + ULWireHandler(Wire, "", "",CACHE_MODE_THIS); } 
+			currentIndex++;
+		}
+		if (nextCacheMode==CACHE_MODE_THIS) return cacheResult;
+		else return intToStr(currentIndex);
+	
+	}
+	return "ERROR:" + intToStr(ERROR_DIMENSION_HANDLER);
+}

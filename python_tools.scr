@@ -1,0 +1,24 @@
+
+# (C) Copyright 2013 Rob Watson rmawatson [at] hotmail.com  and others.
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the GNU Lesser General Public License
+# (LGPL) version 2.1 which accompanies this distribution, and is available at
+# http://www.gnu.org/licenses/lgpl-2.1.html
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# Lesser General Public License for more details.
+#
+# Contributors:
+#     Rob Watson ( rmawatson [at] hotmail )
+
+# Command Menu Setup
+#
+# This is an example that shows how to set up a complex command menu,
+# including submenus and command aliases. To display the command menu in
+# the editor windows you have to activate the option 'Command texts'
+# in the 'Options/User Interface' menu.
+
+MENU 'Python Tools { DXF Import : RUN eagle_python_dispatcher.ulp dxf_import.py | Alignment Tool : RUN eagle_python_dispatcher.ulp alignment_tool.py | Outliner : RUN eagle_python_dispatcher.ulp outliner.py | Debug Script : RUN eagle_python_dispatcher.ulp test.py }' 

@@ -1,0 +1,153 @@
+/*
+ (C) Copyright 2013 Rob Watson rmawatson [at] hotmail.com  and others.
+
+ All rights reserved. This program and the accompanying materials
+ are made available under the terms of the GNU Lesser General Public License
+ (LGPL) version 2.1 which accompanies this distribution, and is available at
+ http://www.gnu.org/licenses/lgpl-2.1.html
+
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ Lesser General Public License for more details.
+
+ Contributors:
+     Rob Watson ( rmawatson [at] hotmail )
+*/
+
+
+
+enum {
+	CONTEXT_BOARD,
+	CONTEXT_SCHEMATIC,
+	CONTEXT_SHEET,
+	CONTEXT_PACKAGE,
+	CONTEXT_LIBRARY
+
+};
+
+enum {
+    CACHE_MODE_AHEAD =1,
+    CACHE_MODE_THIS
+};
+
+enum {
+	ERROR_INVALID_CONTEXT = 1,
+	ERROR_WIRE_HANDLER,
+	ERROR_GRID_HANDLER,
+	ERROR_AREA_HANDLER,
+	ERROR_ARC_HANDLER,
+	ERROR_ATTRIBUTE_HANDLER,
+	ERROR_CIRCLE_HANDLER,
+	ERROR_CLASS_HANDLER,
+	ERROR_DIMENSION_HANDLER,
+	ERROR_ELEMENT_HANDLER,
+	ERROR_PACKAGE_HANDLER,
+	ERROR_TEXT_HANDLER,
+	ERROR_CONTACT_HANDLER,
+	ERROR_POLYGON_HANDLER,
+	ERROR_FRAME_HANDLER,
+	ERROR_RECTANGLE_HANDLER,
+	ERROR_HOLE_HANDLER,
+	ERROR_LAYER_HANDLER,
+	ERROR_LIBRARY_HANDLER,
+	ERROR_DEVICE_HANDLER,
+	ERROR_DEVICESET_HANDLER,
+	ERROR_SYMBOL_HANDLER,
+	ERROR_GATE_HANDLER,
+	ERROR_PIN_HANDLER,
+	ERROR_PAD_HANDLER,
+	ERROR_PINREF_HANDLER,
+	ERROR_SIGNAL_HANDLER,
+	ERROR_VIA_HANDLER,
+	ERROR_VARIANTDEF_HANDLER,
+	ERROR_VARIANT_HANDLER,
+	ERROR_PART_HANDLER,
+	ERROR_INSTANCE_HANDLER,
+	ERROR_JUNCTION_HANDLER,	
+	ERROR_SEGMENT_HANDLER,
+	ERROR_LABEL_HANDLER,
+	ERROR_NET_HANDLER,
+	ERROR_BUS_HANDLER,
+	ERROR_CONTACTREF_HANDLER,
+	ERROR_BOARD_HANDLER,
+	ERROR_SCHEMATIC_HANDLER,
+	ERROR_SHEET_HANDLER,
+	ERROR_MAX_DEPTH,
+	ERROR_BASE_HANDLER
+	
+};
+
+string escapeStr(string original)
+{
+    string final;
+    for(int index;original[index];index++){
+        if (original[index] == '?')
+            final += "\\?";
+        else
+            final += original[index];
+    }
+    return final;
+}
+
+
+void DebugPrintStr(string messageString)
+{
+	output("c:\\temp\\eagle_out.txt","at")
+	{ printf("%s\n",messageString); }
+}
+
+void DebugPrintInt(int messageString)
+{
+	output("c:\\temp\\eagle_out.txt","at")
+	{ printf("%d\n",messageString);}
+}
+
+string realToStr(real value)
+{
+	string result;
+	sprintf(result,"%f",value);
+	return result;
+}
+
+string intToStr(int value)
+{
+	string result;
+	sprintf(result,"%d",value);
+	return result;
+}
+string GetFirstPathItem(string currentPath)
+{
+
+	if (currentPath == "")
+            return currentPath;
+            
+	string result;
+	string pathItems[];
+	strsplit(pathItems,currentPath,'@');
+
+	int index =0;
+	while(1) {
+		if (pathItems[index] != "") {
+			result = pathItems[index];
+			break;
+		}
+		index++;
+	}
+
+	return result;
+}
+
+string GetNextPath(string currentPath)
+{
+	return strsub(currentPath,strlen( GetFirstPathItem(currentPath) )+1,strlen(currentPath));
+}
+
+int IsLastPath(string currentPath, string baseName)
+{
+	if (strlen(currentPath)-1 == strlen(baseName))
+		return 1;
+	
+	return 0;
+}
+

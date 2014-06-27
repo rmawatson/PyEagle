@@ -1,0 +1,96 @@
+/*
+ (C) Copyright 2013 Rob Watson rmawatson [at] hotmail.com  and others.
+
+ All rights reserved. This program and the accompanying materials
+ are made available under the terms of the GNU Lesser General Public License
+ (LGPL) version 2.1 which accompanies this distribution, and is available at
+ http://www.gnu.org/licenses/lgpl-2.1.html
+
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ Lesser General Public License for more details.
+
+ Contributors:
+     Rob Watson ( rmawatson [at] hotmail )
+*/
+
+/* ULTextHandler.ulp generated on 17/17/13 13:16:03 */
+
+#include "ULSupport.ulp"
+#include "ULWireHandler.ulp"
+
+string ULTextHandler(UL_TEXT Text,string currentPath, string argument, char cacheMode)
+{
+	string baseName   = GetFirstPathItem(currentPath);
+	string nextPath   = GetNextPath(currentPath);
+	string baseType = GetFirstPathItem(nextPath);
+	char isLastPath = nextPath ? 0 : 1;
+
+    char   nextCacheMode = cacheMode;
+    string cacheResult;
+
+    if (cacheMode==CACHE_MODE_AHEAD && isLastPath)
+        nextCacheMode = CACHE_MODE_THIS;
+                        
+
+    if (cacheMode == CACHE_MODE_THIS)
+	{
+		cacheResult += intToStr(Text.align) + "?";
+		cacheResult += realToStr(Text.angle) + "?";
+		cacheResult += intToStr(Text.font) + "?";
+		cacheResult += intToStr(Text.layer) + "?";
+		cacheResult += intToStr(Text.mirror) + "?";
+		cacheResult += intToStr(Text.ratio) + "?";
+		cacheResult += intToStr(Text.size) + "?";
+		cacheResult += intToStr(Text.spin) + "?";
+		cacheResult += Text.value + "?";
+		cacheResult += intToStr(Text.x) + "?";
+		cacheResult += intToStr(Text.y) + "?";
+		return cacheResult;
+	}
+	else if (baseName == "align")
+		return intToStr(Text.align);
+	else if (baseName == "angle")
+		return realToStr(Text.angle);
+	else if (baseName == "font")
+		return intToStr(Text.font);
+	else if (baseName == "layer")
+		return intToStr(Text.layer);
+	else if (baseName == "mirror")
+		return intToStr(Text.mirror);
+	else if (baseName == "ratio")
+		return intToStr(Text.ratio);
+	else if (baseName == "size")
+		return intToStr(Text.size);
+	else if (baseName == "spin")
+		return intToStr(Text.spin);
+	else if (baseName == "value")
+		return Text.value;
+	else if (baseName == "x")
+		return intToStr(Text.x);
+	else if (baseName == "y")
+		return intToStr(Text.y);
+		
+	string splitLoopMember[];
+	int accessIndex=0,currentIndex=0;
+	
+	if (!isLastPath)
+	{	
+	    nextPath = GetNextPath(nextPath);
+		strsplit(splitLoopMember,baseType,'^');
+		accessIndex = strtol(splitLoopMember[1]);
+	}
+
+	if (baseName == "wires"){
+		Text.wires(Wire)  { 
+			if (!isLastPath){ if (currentIndex  == accessIndex) { return ULWireHandler(Wire, nextPath,argument,0); } }
+			else if (nextCacheMode==CACHE_MODE_THIS) { cacheResult += ":" + ULWireHandler(Wire, "", "",CACHE_MODE_THIS); } 
+			currentIndex++;
+		}
+		if (nextCacheMode==CACHE_MODE_THIS) return cacheResult;
+		else return intToStr(currentIndex);
+	
+	} 
+	return "ERROR:" + intToStr(ERROR_TEXT_HANDLER);
+}

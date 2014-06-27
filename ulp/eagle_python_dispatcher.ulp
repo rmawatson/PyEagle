@@ -1,0 +1,737 @@
+/*
+ (C) Copyright 2013 Rob Watson rmawatson [at] hotmail.com  and others.
+
+ All rights reserved. This program and the accompanying materials
+ are made available under the terms of the GNU Lesser General Public License
+ (LGPL) version 2.1 which accompanies this distribution, and is available at
+ http://www.gnu.org/licenses/lgpl-2.1.html
+
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ Lesser General Public License for more details.
+
+ Contributors:
+     Rob Watson ( rmawatson [at] hotmail )
+*/
+
+#include "ULBaseHandler.ulp"
+
+
+/* ----- BEGIN CUSTOMISE ----- */ 
+
+
+/*
+	
+	EAGLE_LAUNCHER_PATH - The path to the eagle_lanucher. This just launches python, and returns, allowing the 'ULP' thread in eagle to return aswell.
+	This could quite easily be replaced by a python script, batch file etc. All it needs to do is launch python with a given script.
+	
+	EAGLE_PYTHON_PATH - This is searched for scripts to execute from eagle. Any scripts should be within this path. Currently you cannot have multiple paths
+	for this variable, but this could easily be added.
+	
+	EAGLE_PYTHON_DISPATCHER	- The name of this script. This script has a dual purpose and is used for also to communicate with the python application.
+				
+	PYTHON_EXECUTABLE - Path to the python executable.
+	
+	NOTE:
+	
+	this script uses "netpost" with the address "http://127.0.0.1:7697/xxxx", This port exists in 2 places in this script, and if changed, must also be changed in at the python end.
+	
+
+*/
+
+string EAGLE_LAUNCHER_PATH 		 = "c:\\Projects\\EagleRemote\\eagle_lanucher.exe";
+string EAGLE_PYTHON_PATH         = "C:\\\\Projects\\\\EagleRemote\\\\";
+string EAGLE_PYTHON_DISPATCHER   =	"eagle_python_dispatcher.ulp"
+string PYTHON_EXECUTABLE     	 = "c:\\Python\\Python27\\pythonw.exe";
+
+/* ----- END CUSTOMISE ----- */
+
+
+
+
+string EAGLE_COMMS_ERR_STRING    = "";
+int    EAGLE_ERROR_TIMEOUT       = 1;
+int    EAGLE_COMPLETE_STATUS     = 0;
+
+
+enum  {
+	POLLING_TYPE_CODE = 0,
+	EXEC_TYPE_CODE    = 1  
+};
+
+
+enum  {
+	POLLING_REPONSE_NOP  = 0,
+	POLLING_REPONSE_EXIT = 1
+};
+
+
+enum  {
+	COMMAND_dlgMessageBox = 100,
+	COMMAND_ingroup,
+	COMMAND_clrgroupall,
+	COMMAND_allobjects,
+	COMMAND_setgroup,
+	COMMAND_executescr,
+	COMMAND_getcontext,  
+	COMMAND_getattribute,
+	COMMAND_setattribute,
+	COMMAND_palette,
+	COMMAND_paletteall,
+	COMMAND_getselected,
+	COMMAND_status
+	
+};
+
+
+string scr_result = "";
+string ReplyQueue[];
+int    ReplyQueueSize=0;
+
+
+void DispatchReply(string data)
+{
+	ReplyQueue[ReplyQueueSize] = data;
+	ReplyQueueSize += 1;
+}
+
+
+
+void CommandHandler(string commandData)
+{
+	string commandItems[];
+	strsplit(commandItems,commandData,'|');
+
+	string commandId    =  commandItems[0];
+	int    commandType  =  strtod(commandItems[1]);
+	string commandArgs  =  commandItems[2];
+	
+	switch(commandType)
+	{
+		case COMMAND_status:
+			status(commandItems[1]);
+			DispatchReply(commandId);
+			return;
+		case COMMAND_dlgMessageBox:	
+			dlgMessageBox(commandItems[1]);
+			DispatchReply(commandId);
+			return;
+		case COMMAND_ingroup:
+		{
+			string groupItemNames[];	
+			strsplit(groupItemNames,commandItems[2],';');
+			
+			string itemsInGroup = "";
+			
+			if (sheet){
+				sheet(CurrentSheet) {
+					CurrentSheet.instances(CurrentInstance) {
+						int foundIndex=-1;
+						for(int index=0;groupItemNames[index];++index) {
+							if (groupItemNames[index] == CurrentInstance.name) {
+								foundIndex=index;
+								break;
+							}
+						}
+						
+						if (foundIndex != -1) {	
+							int result = ingroup(CurrentInstance);
+							string resultStr;
+							string indexStr;
+
+							sprintf(resultStr, "%d", result);
+							sprintf(indexStr,  "%d", foundIndex);
+
+							itemsInGroup += "|" + indexStr + ":" + resultStr;
+
+						}
+					}
+				}	
+			}
+			
+			DispatchReply(commandId + itemsInGroup);
+			return;
+		}
+		case COMMAND_clrgroupall:
+		{
+			if (sheet){
+				sheet(CurrentSheet) {
+					CurrentSheet.instances(CurrentInstance) {
+						clrgroup(CurrentInstance);
+					}
+				}
+			}
+			else if(board)
+			{
+				board(Board) {
+					Board.elements(Element) {
+						clrgroup(Element);
+					}
+					Board.signals(Signal) {
+						clrgroup(Signal);
+					}
+				}		
+			}			
+			DispatchReply(commandId);
+			return;
+		}
+		case COMMAND_allobjects:
+		{
+			string resultStr;
+			int index =0;
+			if (sheet) {
+				resultStr = intToStr(CONTEXT_SHEET) + ":";
+				sheet(Sheet) {
+					Sheet.nets(Net) {
+						resultStr += intToStr(index) + "#";
+						index++;
+					} resultStr += ":";
+					index = 0;
+					Sheet.instances(Instance) {
+						resultStr += intToStr(index) + "#";
+						index++;
+					} resultStr += ":";
+					index = 0;
+					Sheet.circles(Circle) {
+						resultStr += intToStr(index) + "#";
+						index++;
+					} resultStr += ":";
+					index = 0;
+					Sheet.frames(Frame) {
+						resultStr += intToStr(index) + "#";
+						index++;
+					} resultStr += ":";
+					index = 0;
+					Sheet.polygons(Polygon) {
+						resultStr += intToStr(index) + "#";
+						index++;
+					} resultStr += ":";
+					index = 0;					
+					Sheet.rectangles(Rectangle) {
+						resultStr += intToStr(index) + "#";
+						index++;
+					} resultStr += ":";
+					index = 0;						
+					Sheet.texts(Text) {
+						resultStr += intToStr(index) + "#";
+						index++;
+					} resultStr += ":";	
+					index = 0;						
+					Sheet.wires(Wire) {
+						resultStr += intToStr(index) + "#";
+						index++;
+					} resultStr += ":";						
+				}
+				DispatchReply(commandId + "|" + resultStr);
+				return;
+			}
+			else if (board) {
+				resultStr = intToStr(CONTEXT_BOARD) + ":";
+				board(Board) {
+					Board.circles(Circle) {
+						resultStr += intToStr(index) + "#";
+						index++;
+					} resultStr += ":";
+					index = 0;
+					Board.elements(Element) {
+						resultStr += intToStr(index) + "#";
+						index++;
+					} resultStr += ":";
+					index = 0;
+					Board.frames(Frame) {
+						resultStr += intToStr(index) + "#";
+						index++;
+					} resultStr += ":";
+					index = 0;
+					Board.holes(Hole) {
+						resultStr += intToStr(index) + "#";
+						index++;
+					} resultStr += ":";
+					index = 0;		
+					Board.polygons(Polygon) {
+						resultStr += intToStr(index) + "#";
+						index++;
+					} resultStr += ":";
+					index = 0;	
+					Board.rectangles(Rectangle) {
+						resultStr += intToStr(index) + "#";
+						index++;
+					} resultStr += ":";
+					index = 0;
+					Board.signals(Signal) {
+						resultStr += intToStr(index) + "#";
+						index++;
+					} resultStr += ":";
+					index = 0;
+					Board.texts(Text) {
+						resultStr += intToStr(index) + "#";
+						index++;
+					} resultStr += ":";
+					index = 0;
+					Board.wires(Wire) {
+						resultStr += intToStr(index) + "#";
+						index++;
+					} resultStr += ":";
+				}
+				DispatchReply(commandId + "|" + resultStr);
+				return;
+			}			
+			else if (package) {
+				
+				resultStr = intToStr(CONTEXT_PACKAGE) + ":";
+				package(Package) {
+					Package.circles(Circle) {
+						resultStr += intToStr(index) + "#";
+						index++;
+					} resultStr += ":";
+					index = 0;
+					Package.contacts(Contact) {
+						resultStr += intToStr(index) + "#";
+						index++;
+					} resultStr += ":";
+					index = 0;
+					Package.dimensions(Dimension) {
+							resultStr += intToStr(index) + "#";
+							index++;
+						} resultStr += ":";
+						index = 0;
+					Package.frames(Frame) {
+							resultStr += intToStr(index) + "#";
+							index++;
+						} resultStr += ":";
+						index = 0;		
+					Package.holes(Hole) {
+							resultStr += intToStr(index) + "#";
+							index++;
+						} resultStr += ":";
+						index = 0;		
+					Package.polygons(Polygon) {
+							resultStr += intToStr(index) + "#";
+							index++;
+						} resultStr += ":";
+						index = 0;							
+					Package.rectangles(Rectangle) {
+							resultStr += intToStr(index) + "#";
+							index++;
+						} resultStr += ":";
+						index = 0;							
+					Package.texts(Text) {
+							resultStr += intToStr(index) + "#";
+							index++;
+						} resultStr += ":";
+						index = 0;								
+					Package.wires(Wire) {
+							resultStr += intToStr(index) + "#";
+							index++;
+						} resultStr += ":";
+						index = 0;		
+				}
+				DispatchReply(commandId + "|" + resultStr);
+				return;	
+			}
+		}	
+		case COMMAND_setgroup:
+		{
+			string groupItemNames[];	
+			strsplit(groupItemNames,commandItems[2],';');		
+			if (sheet){
+				
+				sheet(CurrentSheet) {
+					CurrentSheet.instances(Instance) {
+						for(int index=0;groupItemNames[index];++index) {
+							if (groupItemNames[index] == Instance.name)
+								setgroup(Instance);
+						}
+					}
+				}
+			} 
+			else if(board)
+			{
+				board(Board) {
+					Board.elements(Element) {
+						for(int index=0;groupItemNames[index];++index) {
+							if (groupItemNames[index] == Element.name)
+								setgroup(Element);
+						}
+					}
+					Board.signals(Signal) {
+						for(int index=0;groupItemNames[index];++index) {
+							if (groupItemNames[index] == Signal.name)
+								setgroup(Signal);
+						}
+					}
+				}		
+			}
+			else if(package)
+			{
+				
+				package(Package) {
+					clrgroup(Package);
+					Package.contacts(Contact) {
+						for(int index=0;groupItemNames[index];++index) {
+							if (groupItemNames[index] == Contact.name)
+							{
+								setgroup(Contact);
+							}
+						}
+					}
+					
+				}		
+			}
+			DispatchReply(commandId);
+			return;
+		}
+		case COMMAND_executescr:
+		{
+			scr_result = commandItems[2];
+			DispatchReply(commandId);
+			return;
+		}	
+		case COMMAND_getcontext:
+		{
+			string resultStr;
+			
+			if (board)
+				sprintf(resultStr,"%d",CONTEXT_BOARD);
+			else if (schematic)
+				sprintf(resultStr,"%d",CONTEXT_SCHEMATIC);
+			else if (sheet)
+				sprintf(resultStr,"%d",CONTEXT_SHEET);
+			else if (package)
+				sprintf(resultStr,"%d",CONTEXT_PACKAGE);
+				
+			DispatchReply(commandId + "|" + resultStr);
+			return;
+		}
+		case COMMAND_getselected:
+		{
+			int index = 0;
+			string resultStr;
+					
+			if (sheet) {
+				resultStr = intToStr(CONTEXT_SHEET) + ":";
+				sheet(Sheet) {
+					Sheet.nets(Net) {
+						if (ingroup(Net))
+							resultStr += intToStr(index) + "#";
+						index++;
+					} resultStr += ":";
+					index = 0;
+					Sheet.instances(Instance) {
+						if (ingroup(Instance))
+							resultStr += intToStr(index) + "#";
+						index++;
+					} resultStr += ":";
+					index = 0;
+					Sheet.circles(Circle) {
+						if (ingroup(Circle))
+							resultStr += intToStr(index) + "#";
+						index++;
+					} resultStr += ":";
+					index = 0;
+					Sheet.frames(Frame) {
+						if (ingroup(Frame))
+							resultStr += intToStr(index) + "#";
+						index++;
+					} resultStr += ":";
+					index = 0;
+					Sheet.polygons(Polygon) {
+						if (ingroup(Polygon))
+							resultStr += intToStr(index) + "#";
+						index++;
+					} resultStr += ":";
+					index = 0;					
+					Sheet.rectangles(Rectangle) {
+							if (ingroup(Rectangle))
+								resultStr += intToStr(index) + "#";
+							index++;
+					} resultStr += ":";
+					index = 0;						
+					Sheet.texts(Text) {
+							if (ingroup(Text))
+								resultStr += intToStr(index) + "#";
+							index++;
+					} resultStr += ":";	
+					index = 0;						
+					Sheet.wires(Wire) {
+							if (ingroup(Wire))
+								resultStr += intToStr(index) + "#";
+							index++;
+					} resultStr += ":";						
+				}
+				DispatchReply(commandId + "|" + resultStr);
+				return;
+			}
+			else if (board) {
+				resultStr = intToStr(CONTEXT_BOARD) + ":";
+				board(Board) {
+					Board.circles(Circle) {
+						if (ingroup(Circle))
+							resultStr += intToStr(index) + "#";
+						index++;
+					} resultStr += ":";
+					index = 0;
+					Board.elements(Element) {
+						if (ingroup(Element))
+							resultStr += intToStr(index) + "#";
+						index++;
+					} resultStr += ":";
+					index = 0;
+					Board.frames(Frame) {
+						if (ingroup(Frame))
+							resultStr += intToStr(index) + "#";
+						index++;
+					} resultStr += ":";
+					index = 0;
+					Board.holes(Hole) {
+						if (ingroup(Hole))
+							resultStr += intToStr(index) + "#";
+						index++;
+					} resultStr += ":";
+					index = 0;		
+					Board.polygons(Polygon) {
+						if (ingroup(Polygon))
+							resultStr += intToStr(index) + "#";
+						index++;
+					} resultStr += ":";
+					index = 0;	
+					Board.rectangles(Rectangle) {
+						if (ingroup(Rectangle))
+							resultStr += intToStr(index) + "#";
+						index++;
+					} resultStr += ":";
+					index = 0;
+					Board.signals(Signal) {
+						if (ingroup(Signal))
+							resultStr += intToStr(index) + "#";
+						index++;
+					} resultStr += ":";
+					index = 0;
+					Board.texts(Text) {
+						if (ingroup(Text))
+							resultStr += intToStr(index) + "#";
+						index++;
+					} resultStr += ":";
+					index = 0;
+					Board.wires(Wire) {
+						if (ingroup(Wire))
+							resultStr += intToStr(index) + "#";
+						index++;
+					} resultStr += ":";
+				}
+				DispatchReply(commandId + "|" + resultStr);
+				return;				
+			}
+			else if (package) {
+				resultStr = intToStr(CONTEXT_PACKAGE) + ":";
+				package(Package) {
+					Package.circles(Circle) {
+						if (ingroup(Circle))
+							resultStr += intToStr(index) + "#";
+						index++;
+					} resultStr += ":";
+					index = 0;
+					Package.contacts(Contact) {
+						if (ingroup(Contact))
+							resultStr += intToStr(index) + "#";
+						index++;
+					} resultStr += ":";
+					index = 0;					
+				}
+				DispatchReply(commandId + "|" + resultStr);
+				return;	
+			}
+		}
+		case COMMAND_setattribute: 
+		case COMMAND_getattribute:
+		{
+			
+			string commandParts[];strsplit(commandParts,commandItems[2],'?');
+			string commandPath  = commandParts[0];
+			
+			int    cacheMode    = strtod(commandParts[1]);
+			string resultStr = ULBaseHandler(commandPath,commandParts[1],cacheMode);
+			DispatchReply(commandId + "|" + resultStr);
+			return;
+		}
+		case COMMAND_palette:
+		{		
+				string indexSplit[];
+				strsplit(indexSplit,commandArgs,'?');
+				
+				int index = strtod(indexSplit[0]);
+				int type  = strtod(indexSplit[1]);
+				
+				string resultStr = intToStr(palette(index,type));
+				
+			DispatchReply(commandId + "|" + resultStr);
+			return;
+		}
+		case COMMAND_paletteall:
+			int type  = strtod(commandArgs);
+			string resultStr = "";
+			
+			for(int index;index<PALETTE_ENTRIES;++index)
+				resultStr += ":" + intToStr(palette(index,type));
+				
+			DispatchReply(commandId + "|" + resultStr);
+			return;	
+	}
+}
+
+
+int PollServer()
+{
+
+	string result[];
+
+	int error = netpost(result, "http://127.0.0.1:7697/polling","",1);
+	if (error < 0 ) {
+		EAGLE_COMMS_ERR_STRING = neterror();
+		return 1;
+	}	
+	
+	
+	string responseRawData = result[0];
+	string responseSplitData[];
+	
+
+	strsplit(responseSplitData,strsub(responseRawData,1,strlen(responseRawData)-2),':');
+	int    responseActionCode = strtod(strsub(responseSplitData[0],1,strlen(responseSplitData[0])-2));
+	string responseData  	 = strsub(responseSplitData[1],2,strlen(responseSplitData[1])-3);
+	
+	switch(responseActionCode)
+	{
+		case POLLING_TYPE_CODE:
+		{
+	
+			int responseCode = strtod(responseData);
+			EAGLE_COMPLETE_STATUS = responseCode == POLLING_REPONSE_EXIT ? 1:0;
+			break;
+		}
+		case EXEC_TYPE_CODE:
+		{			
+			CommandHandler(responseData);
+			break;
+		}			
+		default:
+			break;
+	
+
+	}
+	
+	string data = "";
+	while(ReplyQueueSize)
+	{
+		ReplyQueueSize--;
+		string reply = ReplyQueue[ReplyQueueSize];
+		data += ";" + reply;	
+	}
+
+	if (data)
+	{
+		error = netpost(result, "http://127.0.0.1:7697/execreply",data,1);
+	}
+	if (error < 0) {
+		EAGLE_COMMS_ERR_STRING = neterror();
+		return 1;
+	}
+
+	return 0;
+}
+
+if (argc < 2)
+{
+	dlgMessageBox("Expected 'python_script.py' as second argument.");
+	exit(1);
+}	
+	
+if (argv[1] != "eagle_polling") {	
+	if (fileext(argv[1]) != ".py") {
+		dlgMessageBox("Second argument " +  argv[1] + " must be a python script, and exist in the EAGLE_PYTHON_PATH directory.");
+		exit(1);
+	}
+
+	if (filetime(EAGLE_PYTHON_PATH + argv[1]) == 0) {
+		dlgMessageBox("Script '" + argv[1] + "' does not exist in " + EAGLE_PYTHON_PATH);
+		exit(1);
+	}
+
+
+	string arguments = "";
+	for(int argi=2;argi<argc;++argi)
+		arguments += " " + argv[argi];
+
+	system(EAGLE_LAUNCHER_PATH + " \"" + PYTHON_EXECUTABLE + " " + EAGLE_PYTHON_PATH +  argv[1] + arguments +"\" ");
+	
+	int error = PollServer(); 
+	exit("RUN " + EAGLE_PYTHON_DISPATCHER + " eagle_polling 0");
+	
+	
+} else {
+	int totalError = 0;
+	int lastError  = strtod(argv[2]);
+	
+	int thisError = 0;
+	while(!scr_result && !thisError)
+		thisError = PollServer();
+
+	
+	if (!EAGLE_COMPLETE_STATUS)
+	{
+		
+		if (thisError)
+			totalError = lastError + thisError;
+		else
+			totalError = totalError > 0 ? totalError-- : 0;
+		
+		
+		if (totalError < EAGLE_ERROR_TIMEOUT)
+		{
+		
+			string errorStr;
+			sprintf(errorStr,"%d",totalError);
+			
+			string scr_result_str = scr_result;
+			scr_result = "";
+			if (scr_result_str != "")
+			{	
+				scr_result_str += ";";
+			}
+			
+			exit(scr_result_str + "RUN " + EAGLE_PYTHON_DISPATCHER + " eagle_polling " + errorStr + ";");	
+		
+		}
+		else
+			dlgMessageBox("!Python Communication error occurred. Python script did not exit cleanly.\n'" + EAGLE_COMMS_ERR_STRING + " '");
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

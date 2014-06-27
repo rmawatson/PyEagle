@@ -1,0 +1,117 @@
+/*
+ (C) Copyright 2013 Rob Watson rmawatson [at] hotmail.com  and others.
+
+ All rights reserved. This program and the accompanying materials
+ are made available under the terms of the GNU Lesser General Public License
+ (LGPL) version 2.1 which accompanies this distribution, and is available at
+ http://www.gnu.org/licenses/lgpl-2.1.html
+
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ Lesser General Public License for more details.
+
+ Contributors:
+     Rob Watson ( rmawatson [at] hotmail )
+*/
+
+/* ULInstanceHandler.ulp generated on 17/17/13 13:16:03 */
+
+#include "ULSupport.ulp"
+#include "ULGateHandler.ulp"
+#include "ULAttributeHandler.ulp"
+#include "ULTextHandler.ulp"
+#include "ULGateHandler.ulp"
+
+string ULInstanceHandler(UL_INSTANCE Instance, string currentPath, string argument, char cacheMode)
+{
+	string baseName   = GetFirstPathItem(currentPath);
+	string nextPath   = GetNextPath(currentPath);
+	string baseType = GetFirstPathItem(nextPath);
+	char isLastPath = nextPath ? 0 : 1;
+
+    char   nextCacheMode = cacheMode;
+    string cacheResult;
+
+    if (cacheMode==CACHE_MODE_AHEAD && isLastPath)
+        nextCacheMode = CACHE_MODE_THIS;
+                        
+
+    if (cacheMode == CACHE_MODE_THIS)
+	{
+		cacheResult += realToStr(Instance.angle) + "?";
+		cacheResult += escapeStr(Instance.column) + "?";
+		cacheResult += intToStr(Instance.mirror) + "?";
+		cacheResult += escapeStr(Instance.name) + "?";
+		cacheResult += escapeStr(Instance.row) + "?";
+		cacheResult += intToStr(Instance.sheet) + "?";
+		cacheResult += intToStr(Instance.smashed) + "?";
+		cacheResult += escapeStr(Instance.value) + "?";
+		cacheResult += intToStr(Instance.x) + "?";
+		cacheResult += intToStr(Instance.y) + "?";
+		return cacheResult;
+	}
+	else if (baseName == "angle")
+		return realToStr(Instance.angle);
+	else if (baseName == "column")
+		return Instance.column;
+	else if (baseName == "gate")
+		return ULGateHandler(Instance.gate,nextPath,argument,0);
+	else if (baseName == "mirror")
+		return intToStr(Instance.mirror);
+	else if (baseName == "name")
+		return Instance.name;
+	/*else if (baseName == "part")
+		return U L PartHandler(Instance.part,nextPath,argument,0);*/
+	else if (baseName == "row")
+		return Instance.row;
+	else if (baseName == "sheet")
+		return intToStr(Instance.sheet);
+	else if (baseName == "smashed")
+		return intToStr(Instance.smashed);
+	else if (baseName == "value")
+		return Instance.value;		
+	else if (baseName == "x")
+		return intToStr(Instance.x);	
+	else if (baseName == "y")
+		return intToStr(Instance.y);
+
+	string splitLoopMember[];
+	int accessIndex=0,currentIndex=0;
+	
+	if (!isLastPath)
+	{
+		strsplit(splitLoopMember,baseName,'^');
+		baseName = splitLoopMember[0];
+		accessIndex = strtol(splitLoopMember[1]);
+	}
+
+	if (baseName == "attributes"){
+		Instance.attributes(Attribute)  { 
+			if (!isLastPath){ if (currentIndex  == accessIndex) { return ULAttributeHandler(Attribute, nextPath,argument,0); } }
+			else if (nextCacheMode==CACHE_MODE_THIS) { cacheResult += ":" + ULAttributeHandler(Attribute, "", "",CACHE_MODE_THIS); } 
+			currentIndex++;
+		}
+		if (nextCacheMode==CACHE_MODE_THIS) return cacheResult;
+		else return intToStr(currentIndex);
+	
+	} else if (baseName == "texts"){
+		Instance.texts(Text)  { 
+			if (!isLastPath){ if (currentIndex  == accessIndex) { return ULTextHandler(Text, nextPath,argument,0); } }
+			else if (nextCacheMode==CACHE_MODE_THIS) { cacheResult += ":" + ULTextHandler(Text, "", "",CACHE_MODE_THIS); } 
+			currentIndex++;
+		}
+		if (nextCacheMode==CACHE_MODE_THIS) return cacheResult;
+		else return intToStr(currentIndex);
+	
+	} else if (baseName == "xrefs"){
+		Instance.xrefs(Gate)  { 
+			if (!isLastPath){ if (currentIndex  == accessIndex) { return ULGateHandler(Gate, nextPath,argument,0); } }
+			else if (nextCacheMode==CACHE_MODE_THIS) { cacheResult += ":" + ULGateHandler(Gate, "", "",CACHE_MODE_THIS); } 
+			currentIndex++;
+		}
+		if (nextCacheMode==CACHE_MODE_THIS) return cacheResult;
+		else return intToStr(currentIndex);
+	}
+	return "ERROR:" + intToStr(ERROR_INSTANCE_HANDLER);
+}

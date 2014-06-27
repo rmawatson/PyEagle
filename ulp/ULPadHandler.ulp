@@ -1,0 +1,72 @@
+/*
+ (C) Copyright 2013 Rob Watson rmawatson [at] hotmail.com  and others.
+
+ All rights reserved. This program and the accompanying materials
+ are made available under the terms of the GNU Lesser General Public License
+ (LGPL) version 2.1 which accompanies this distribution, and is available at
+ http://www.gnu.org/licenses/lgpl-2.1.html
+
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ Lesser General Public License for more details.
+
+ Contributors:
+     Rob Watson ( rmawatson [at] hotmail )
+*/
+
+/* ULPadHandler.ulp generated on 17/17/13 13:16:03 */
+
+#include "ULSupport.ulp"
+
+string ULPadHandler(UL_PAD Pad,string currentPath, string argument, char cacheMode)
+{
+	string baseName   = GetFirstPathItem(currentPath);
+	string nextPath   = GetNextPath(currentPath);
+	string baseType = GetFirstPathItem(nextPath);
+	string cacheResult;
+
+    if (cacheMode == CACHE_MODE_THIS)
+	{
+		cacheResult += realToStr(Pad.angle) + "?";
+		cacheResult += intToStr(Pad.drill) + "?";
+		cacheResult += intToStr(Pad.drillsymbol) + "?";
+		cacheResult += intToStr(Pad.elongation) + "?";
+		cacheResult += intToStr(Pad.flags) + "?";
+		cacheResult += Pad.name + "?";
+		cacheResult += Pad.signal + "?";
+		cacheResult += intToStr(Pad.x) + "?";
+		cacheResult += intToStr(Pad.y) + "?";
+		return cacheResult;
+	}
+	else if (baseName == "angle")
+		return realToStr(Pad.angle);
+	else if (baseName == "diameter")
+	{
+		int index = strtol(argument);
+		return intToStr(Pad.diameter[index]);
+	}
+	else if (baseName == "drill")
+		return intToStr(Pad.drill);
+	else if (baseName == "drillsymbol")
+		return intToStr(Pad.drillsymbol);
+	else if (baseName == "elongation")
+		return intToStr(Pad.elongation);
+	else if (baseName == "flags")
+		return intToStr(Pad.flags);	
+	else if (baseName == "name")
+		return Pad.name;
+	else if (baseName == "shape")
+	{
+		int index = strtol(argument);
+		return intToStr(Pad.shape[index]);
+	}
+	else if (baseName == "signal")
+		return Pad.signal;			
+	else if (baseName == "x")
+		return intToStr(Pad.x);
+	else if (baseName == "y")
+		return intToStr(Pad.y);
+		
+	return "ERROR:" + intToStr(ERROR_PAD_HANDLER);
+}

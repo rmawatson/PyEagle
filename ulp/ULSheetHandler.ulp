@@ -1,0 +1,170 @@
+/*
+ (C) Copyright 2013 Rob Watson rmawatson [at] hotmail.com  and others.
+
+ All rights reserved. This program and the accompanying materials
+ are made available under the terms of the GNU Lesser General Public License
+ (LGPL) version 2.1 which accompanies this distribution, and is available at
+ http://www.gnu.org/licenses/lgpl-2.1.html
+
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ Lesser General Public License for more details.
+
+ Contributors:
+     Rob Watson ( rmawatson [at] hotmail )
+*/
+
+/* ULSheetHandler.ulp generated on 17/17/13 13:16:03 */
+
+#include "ULSupport.ulp"
+#include "ULAreaHandler.ulp"
+#include "ULBusHandler.ulp"
+#include "ULCircleHandler.ulp"
+#include "ULDimensionHandler.ulp"
+#include "ULFrameHandler.ulp"
+#include "ULInstanceHandler.ulp"
+#include "ULNetHandler.ulp"
+#include "ULPolygonHandler.ulp"
+#include "ULRectangleHandler.ulp"
+#include "ULTextHandler.ulp"
+#include "ULWireHandler.ulp"
+
+string ULSheetHandler(UL_SHEET Sheet,string currentPath, string argument, char cacheMode)
+{
+	string baseName   = GetFirstPathItem(currentPath);
+	string nextPath   = GetNextPath(currentPath);
+	string baseType = GetFirstPathItem(nextPath);
+	char isLastPath = nextPath ? 0 : 1;
+
+    char   nextCacheMode = cacheMode;
+    string cacheResult;
+
+    if (cacheMode==CACHE_MODE_AHEAD && isLastPath)
+        nextCacheMode = CACHE_MODE_THIS;
+                        
+
+	string splitLoopMember[];
+	int accessIndex=0,currentIndex=0;
+
+	if (!isLastPath)
+	{	
+	    nextPath = GetNextPath(nextPath);
+		strsplit(splitLoopMember,baseType,'^');
+		accessIndex = strtol(splitLoopMember[1]);
+	}
+	
+    if (cacheMode == CACHE_MODE_THIS)
+	{
+		cacheResult += Sheet.description + "?";
+		cacheResult += Sheet.headline + "?";
+		cacheResult += intToStr(Sheet.number) + "?";
+		return cacheResult;
+	}
+	else if (baseName == "area")
+		return ULAreaHandler(Sheet.area,nextPath,argument,0);
+	else if (baseName == "description")	
+		return Sheet.description;		
+	else if (baseName == "headline")
+		return Sheet.headline;
+	else if (baseName == "number")
+		return intToStr(Sheet.number);
+
+
+	if (baseName == "busses"){
+		Sheet.busses(Bus)  { 
+			if (!isLastPath){ if (currentIndex  == accessIndex) { return ULBusHandler(Bus, nextPath,argument,0); } }
+			else if (nextCacheMode==CACHE_MODE_THIS) { cacheResult += ":" + ULBusHandler(Bus, "", "",CACHE_MODE_THIS); } 
+			currentIndex++;
+		}
+		if (nextCacheMode==CACHE_MODE_THIS) return cacheResult;
+		else return intToStr(currentIndex);
+	
+	} else if (baseName == "circles"){
+		Sheet.circles(Circle)  { 
+			if (!isLastPath){ if (currentIndex  == accessIndex) { return ULCircleHandler(Circle, nextPath,argument,0); } }
+			else if (nextCacheMode==CACHE_MODE_THIS) { cacheResult += ":" + ULCircleHandler(Circle, "", "",CACHE_MODE_THIS); } 
+			currentIndex++;
+		}
+		if (nextCacheMode==CACHE_MODE_THIS) return cacheResult;
+		else return intToStr(currentIndex);
+	
+	} else if (baseName == "dimensions"){
+		Sheet.dimensions(Dimension)  { 
+			if (!isLastPath){ if (currentIndex  == accessIndex) { return ULDimensionHandler(Dimension, nextPath,argument,0); } }
+			else if (nextCacheMode==CACHE_MODE_THIS) { cacheResult += ":" + ULDimensionHandler(Dimension, "", "",CACHE_MODE_THIS); } 
+			currentIndex++;
+		}
+		if (nextCacheMode==CACHE_MODE_THIS) return cacheResult;
+		else return intToStr(currentIndex);
+	
+	} else if (baseName == "frames"){
+		Sheet.frames(Frame)  { 
+			if (!isLastPath){ if (currentIndex  == accessIndex) { return ULFrameHandler(Frame, nextPath,argument,0); } }
+			else if (nextCacheMode==CACHE_MODE_THIS) { cacheResult += ":" + ULFrameHandler(Frame, "", "",CACHE_MODE_THIS); } 
+			currentIndex++;
+		}
+		if (nextCacheMode==CACHE_MODE_THIS) return cacheResult;
+		else return intToStr(currentIndex);
+	
+	} else if (baseName == "instances"){
+		Sheet.instances(Instance)  { 
+			if (!isLastPath){ if (currentIndex  == accessIndex) { return ULInstanceHandler(Instance, nextPath,argument,0); } }
+			else if (nextCacheMode==CACHE_MODE_THIS) { cacheResult += ":" + ULInstanceHandler(Instance, "", "",CACHE_MODE_THIS); } 
+			currentIndex++;
+		}
+		if (nextCacheMode==CACHE_MODE_THIS) return cacheResult;
+		else return intToStr(currentIndex);
+	
+	} else if (baseName == "nets"){
+		Sheet.nets(Net)  { 
+			if (!isLastPath){ if (currentIndex  == accessIndex) { return ULNetHandler(Net, nextPath,argument,0); } }
+			else if (nextCacheMode==CACHE_MODE_THIS) { cacheResult += ":" + ULNetHandler(Net, "", "",CACHE_MODE_THIS); } 
+			currentIndex++;
+		}
+		if (nextCacheMode==CACHE_MODE_THIS) return cacheResult;
+		else return intToStr(currentIndex);
+	
+	} else if (baseName == "polygons"){	
+		Sheet.polygons(Polygon)  { 
+			if (!isLastPath){ if (currentIndex  == accessIndex) { return ULPolygonHandler(Polygon, nextPath,argument,0); } }
+			else if (nextCacheMode==CACHE_MODE_THIS) { cacheResult += ":" + ULPolygonHandler(Polygon, "", "",CACHE_MODE_THIS); } 
+			currentIndex++;
+		}
+		if (nextCacheMode==CACHE_MODE_THIS) return cacheResult;
+		else return intToStr(currentIndex);
+	
+	} else if (baseName == "rectangles"){
+		Sheet.rectangles(Rectangle)  { 
+			if (!isLastPath){ if (currentIndex  == accessIndex) { return ULRectangleHandler(Rectangle, nextPath,argument,0); } }
+			else if (nextCacheMode==CACHE_MODE_THIS) { cacheResult += ":" + ULRectangleHandler(Rectangle, "", "",CACHE_MODE_THIS); } 
+			currentIndex++;
+		}
+		if (nextCacheMode==CACHE_MODE_THIS) return cacheResult;
+		else return intToStr(currentIndex);
+	
+	} else if (baseName == "texts"){
+
+		Sheet.texts(Text)  {
+			if (!isLastPath){ if (currentIndex  == accessIndex) { return ULTextHandler(Text, nextPath,argument,0); } }
+			else if (nextCacheMode==CACHE_MODE_THIS) { cacheResult += ":" + ULTextHandler(Text, "", "",CACHE_MODE_THIS); } 
+			currentIndex++;
+		}
+		if (nextCacheMode==CACHE_MODE_THIS) return cacheResult;
+		else return intToStr(currentIndex);
+	
+	} else if (baseName == "wires"){
+
+		Sheet.wires(Wire)  { 
+			if (!isLastPath){ if (currentIndex  == accessIndex) { return ULWireHandler(Wire, nextPath,argument,0); } }
+			else if (nextCacheMode==CACHE_MODE_THIS) { cacheResult += ":" + ULWireHandler(Wire, "", "",CACHE_MODE_THIS); } 
+			currentIndex++;
+		}
+		if (nextCacheMode==CACHE_MODE_THIS) return cacheResult;
+		else return intToStr(currentIndex);
+	
+	}
+	
+	return "ERROR:" + intToStr(ERROR_SHEET_HANDLER);
+
+}

@@ -1,0 +1,109 @@
+/*
+ (C) Copyright 2013 Rob Watson rmawatson [at] hotmail.com  and others.
+
+ All rights reserved. This program and the accompanying materials
+ are made available under the terms of the GNU Lesser General Public License
+ (LGPL) version 2.1 which accompanies this distribution, and is available at
+ http://www.gnu.org/licenses/lgpl-2.1.html
+
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ Lesser General Public License for more details.
+
+ Contributors:
+     Rob Watson ( rmawatson [at] hotmail )
+*/
+
+/* ULPolygonHandler.ulp generated on 17/17/13 13:16:03 */
+
+#include "ULSupport.ulp"
+#include "ULWireHandler.ulp"
+#include "ULWireHandler.ulp"
+#include "ULWireHandler.ulp"
+
+string ULPolygonHandler(UL_POLYGON Polygon,string currentPath, string argument, char cacheMode)
+{
+	string baseName   = GetFirstPathItem(currentPath);
+	string nextPath   = GetNextPath(currentPath);
+	string baseType = GetFirstPathItem(nextPath);
+	char isLastPath = nextPath ? 0 : 1;
+
+    char   nextCacheMode = cacheMode;
+    string cacheResult;
+
+    if (cacheMode==CACHE_MODE_AHEAD && isLastPath)
+        nextCacheMode = CACHE_MODE_THIS;
+                        
+
+    if (cacheMode == CACHE_MODE_THIS)
+	{
+		cacheResult += intToStr(Polygon.isolate) + "?";
+		cacheResult += intToStr(Polygon.layer) + "?";
+		cacheResult += intToStr(Polygon.orphans) + "?";
+		cacheResult += intToStr(Polygon.pour) + "?";
+		cacheResult += intToStr(Polygon.rank) + "?";
+		cacheResult += intToStr(Polygon.spacing) + "?";
+		cacheResult += intToStr(Polygon.thermals) + "?";
+		cacheResult += intToStr(Polygon.width) + "?";
+		return cacheResult;
+	}
+	else if (baseName == "isolate")
+		return intToStr(Polygon.isolate);
+	else if (baseName == "layer")
+		return intToStr(Polygon.layer);
+	else if (baseName == "orphans")
+		return intToStr(Polygon.orphans);
+	else if (baseName == "pour")
+		return intToStr(Polygon.pour);
+	else if (baseName == "rank")
+		return intToStr(Polygon.rank);
+	else if (baseName == "spacing")
+		return intToStr(Polygon.spacing);
+	else if (baseName == "thermals")
+		return intToStr(Polygon.thermals);
+	else if (baseName == "width")
+		return intToStr(Polygon.width);
+
+
+	string splitLoopMember[];
+	int accessIndex=0,currentIndex=0;
+	
+	if (!isLastPath)
+	{	
+	    nextPath = GetNextPath(nextPath);
+		strsplit(splitLoopMember,baseType,'^');
+		accessIndex = strtol(splitLoopMember[1]);
+	}
+
+	if (baseName == "contours"){
+		Polygon.contours(Wire)  { 
+			if (!isLastPath){ if (currentIndex  == accessIndex) { return ULWireHandler(Wire, nextPath,argument,0); } }
+			else if (nextCacheMode==CACHE_MODE_THIS) { cacheResult += ":" + ULWireHandler(Wire, "", "",CACHE_MODE_THIS); } 
+			currentIndex++;
+		}
+		if (nextCacheMode==CACHE_MODE_THIS) return cacheResult;
+		else return intToStr(currentIndex);
+	
+	} else if (baseName == "fillings"){
+		Polygon.fillings(Wire)  { 
+			if (!isLastPath){ if (currentIndex  == accessIndex) { return ULWireHandler(Wire, nextPath,argument,0); } }
+			else if (nextCacheMode==CACHE_MODE_THIS) { cacheResult += ":" + ULWireHandler(Wire, "", "",CACHE_MODE_THIS); } 
+			currentIndex++;
+		}
+		if (nextCacheMode==CACHE_MODE_THIS) return cacheResult;
+		else return intToStr(currentIndex);
+	
+	} else if (baseName == "wires"){
+		Polygon.wires(Wire)  { 
+			if (!isLastPath){ if (currentIndex  == accessIndex) { return ULWireHandler(Wire, nextPath,argument,0); } }
+			else if (nextCacheMode==CACHE_MODE_THIS) { cacheResult += ":" + ULWireHandler(Wire, "", "",CACHE_MODE_THIS); } 
+			currentIndex++;
+		}
+		if (nextCacheMode==CACHE_MODE_THIS) return cacheResult;
+		else return intToStr(currentIndex);
+	
+	}
+	
+	return "ERROR:" + intToStr(ERROR_POLYGON_HANDLER);
+}

@@ -1,0 +1,54 @@
+/*
+ (C) Copyright 2013 Rob Watson rmawatson [at] hotmail.com  and others.
+
+ All rights reserved. This program and the accompanying materials
+ are made available under the terms of the GNU Lesser General Public License
+ (LGPL) version 2.1 which accompanies this distribution, and is available at
+ http://www.gnu.org/licenses/lgpl-2.1.html
+
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ Lesser General Public License for more details.
+
+ Contributors:
+     Rob Watson ( rmawatson [at] hotmail )
+*/
+
+/* ULRectangleHandler.ulp generated on 17/17/13 13:16:03 */
+
+#include "ULSupport.ulp"
+
+string ULRectangleHandler(UL_RECTANGLE Rectangle,string currentPath, string argument, char cacheMode)
+{
+	string baseName = GetFirstPathItem(currentPath);
+	string nextPath = GetNextPath(currentPath);
+	string baseType = GetFirstPathItem(nextPath);
+	string cacheResult;
+
+    if (cacheMode == CACHE_MODE_THIS)
+	{
+		cacheResult += realToStr(Rectangle.angle) + "?";
+		cacheResult += intToStr(Rectangle.layer) + "?";
+		cacheResult += intToStr(Rectangle.x1) + "?";
+		cacheResult += intToStr(Rectangle.x2) + "?";
+		cacheResult += intToStr(Rectangle.y1) + "?";
+		cacheResult += intToStr(Rectangle.y2) + "?";
+		return cacheResult;
+	}
+	else if (baseName == "angle")
+		return realToStr(Rectangle.angle);
+	else if (baseName == "layer")
+		return intToStr(Rectangle.layer);
+	else if (baseName == "x1")
+		return intToStr(Rectangle.x1);
+	else if (baseName == "x2")
+		return intToStr(Rectangle.x2);
+	else if (baseName == "y1")
+		return intToStr(Rectangle.y1);
+	else if (baseName == "y2")
+		return intToStr(Rectangle.y2);
+		
+	return "ERROR:" + intToStr(ERROR_RECTANGLE_HANDLER);
+
+}

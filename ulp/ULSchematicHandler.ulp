@@ -1,0 +1,152 @@
+/*
+ (C) Copyright 2013 Rob Watson rmawatson [at] hotmail.com  and others.
+
+ All rights reserved. This program and the accompanying materials
+ are made available under the terms of the GNU Lesser General Public License
+ (LGPL) version 2.1 which accompanies this distribution, and is available at
+ http://www.gnu.org/licenses/lgpl-2.1.html
+
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ Lesser General Public License for more details.
+
+ Contributors:
+     Rob Watson ( rmawatson [at] hotmail )
+*/
+
+/* ULSchematicHandler.ulp generated on 17/17/13 13:16:03 */
+
+#include "ULSupport.ulp"
+#include "ULGridHandler.ulp"
+#include "ULAttributeHandler.ulp"
+#include "ULClassHandler.ulp"
+#include "ULLayerHandler.ulp"
+#include "ULLibraryHandler.ulp"
+#include "ULNetHandler.ulp"
+#include "ULPartHandler.ulp"
+#include "ULSheetHandler.ulp"
+#include "ULVariantDefHandler.ulp"
+
+string ULSchematicHandler(UL_SCHEMATIC Schematic,string currentPath, string argument, char cacheMode)
+{
+	string baseName   = GetFirstPathItem(currentPath);
+	string nextPath   = GetNextPath(currentPath);
+	string baseType = GetFirstPathItem(nextPath);
+	char isLastPath = nextPath ? 0 : 1;
+
+    char   nextCacheMode = cacheMode;
+    string cacheResult;
+
+    if (cacheMode==CACHE_MODE_AHEAD && isLastPath)
+        nextCacheMode = CACHE_MODE_THIS;
+                        
+
+	string splitLoopMember[];
+	int accessIndex=0,currentIndex=0;
+
+	if (!isLastPath)
+	{	
+	    nextPath = GetNextPath(nextPath);
+		strsplit(splitLoopMember,baseType,'^');
+		accessIndex = strtol(splitLoopMember[1]);
+	}
+	
+    if (cacheMode == CACHE_MODE_THIS)
+	{
+		cacheResult += Schematic.description + "?";
+		cacheResult += Schematic.headline + "?";
+		cacheResult += Schematic.name + "?";
+		cacheResult += Schematic.xreflabel + "?";
+		return cacheResult;
+	}
+	else if (baseName == "description")
+		return Schematic.description;
+	else if (baseName == "grid")	
+		return ULGridHandler(Schematic.grid,nextPath,argument,0);			
+	else if (baseName == "headline")
+		return Schematic.headline;
+	else if (baseName == "name")
+		return Schematic.name;
+	else if (baseName == "xreflabel")
+		return Schematic.xreflabel;
+
+
+
+	if (baseName == "attributes"){
+		Schematic.attributes(Attribute)  { 
+			if (!isLastPath){ if (currentIndex  == accessIndex) { return ULAttributeHandler(Attribute, nextPath,argument,0); } }
+			else if (nextCacheMode==CACHE_MODE_THIS) { cacheResult += ":" + ULAttributeHandler(Attribute, "", "",CACHE_MODE_THIS); } 
+			currentIndex++;
+		}
+		if (nextCacheMode==CACHE_MODE_THIS) return cacheResult;
+		else return intToStr(currentIndex);
+	
+	} else if (baseName == "classes"){
+		Schematic.classes(Class)  { 
+			if (!isLastPath){ if (currentIndex  == accessIndex) { return ULClassHandler(Class, nextPath,argument,0); } }
+			else if (nextCacheMode==CACHE_MODE_THIS) { cacheResult += ":" + ULClassHandler(Class, "", "",CACHE_MODE_THIS); } 
+			currentIndex++;
+		}
+		if (nextCacheMode==CACHE_MODE_THIS) return cacheResult;
+		else return intToStr(currentIndex);
+	
+	} else if (baseName == "layers"){
+		Schematic.layers(Layer)  { 
+			if (!isLastPath){ if (currentIndex  == accessIndex) { return ULLayerHandler(Layer, nextPath,argument,0); } }
+			else if (nextCacheMode==CACHE_MODE_THIS) { cacheResult += ":" + ULLayerHandler(Layer, "", "",CACHE_MODE_THIS); } 
+			currentIndex++;
+		}
+		if (nextCacheMode==CACHE_MODE_THIS) return cacheResult;
+		else return intToStr(currentIndex);
+	
+	} else if (baseName == "libraries"){
+		Schematic.libraries(Library)  { 
+			if (!isLastPath){ if (currentIndex  == accessIndex) { return ULLibraryHandler(Library, nextPath,argument,0); } }
+			else if (nextCacheMode==CACHE_MODE_THIS) { cacheResult += ":" + ULLibraryHandler(Library, "", "",CACHE_MODE_THIS); } 
+			currentIndex++;
+		}
+		if (nextCacheMode==CACHE_MODE_THIS) return cacheResult;
+		else return intToStr(currentIndex);
+	
+	} else if (baseName == "nets"){
+		Schematic.nets(Net)  { 
+			if (!isLastPath){ if (currentIndex  == accessIndex) { return ULNetHandler(Net, nextPath,argument,0); } }
+			else if (nextCacheMode==CACHE_MODE_THIS) { cacheResult += ":" + ULNetHandler(Net, "", "",CACHE_MODE_THIS); } 
+			currentIndex++;
+		}
+		if (nextCacheMode==CACHE_MODE_THIS) return cacheResult;
+		else return intToStr(currentIndex);
+	
+	} else if (baseName == "parts"){
+		Schematic.parts(Part)  { 
+			if (!isLastPath){ if (currentIndex  == accessIndex) { return ULPartHandler(Part, nextPath,argument,0); } }
+			else if (nextCacheMode==CACHE_MODE_THIS) { cacheResult += ":" + ULPartHandler(Part, "", "",CACHE_MODE_THIS); } 
+			currentIndex++;
+		}
+		if (nextCacheMode==CACHE_MODE_THIS) return cacheResult;
+		else return intToStr(currentIndex);
+	
+	} else if (baseName == "sheets"){
+		Schematic.sheets(Sheet)  { 
+			if (!isLastPath){ if (currentIndex  == accessIndex) { return ULSheetHandler(Sheet, nextPath,argument,0); } }
+			else if (nextCacheMode==CACHE_MODE_THIS) { cacheResult += ":" + ULSheetHandler(Sheet, "", "",CACHE_MODE_THIS); } 
+			currentIndex++;
+		}
+		if (nextCacheMode==CACHE_MODE_THIS) return cacheResult;
+		else return intToStr(currentIndex);
+	
+	} else if (baseName == "variantdefs"){
+		Schematic.variantdefs(VariantDef)  { 
+			if (!isLastPath){ if (currentIndex  == accessIndex) { return ULVariantDefHandler(VariantDef, nextPath,argument,0); } }
+			else if (nextCacheMode==CACHE_MODE_THIS) { cacheResult += ":" + ULVariantDefHandler(VariantDef, "", "",CACHE_MODE_THIS); } 
+			currentIndex++;
+		}
+		if (nextCacheMode==CACHE_MODE_THIS) return cacheResult;
+		else return intToStr(currentIndex);
+	
+	}
+	
+	return "ERROR:" + intToStr(ERROR_SCHEMATIC_HANDLER);
+
+}

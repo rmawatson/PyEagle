@@ -1,0 +1,54 @@
+/*
+ (C) Copyright 2013 Rob Watson rmawatson [at] hotmail.com  and others.
+
+ All rights reserved. This program and the accompanying materials
+ are made available under the terms of the GNU Lesser General Public License
+ (LGPL) version 2.1 which accompanies this distribution, and is available at
+ http://www.gnu.org/licenses/lgpl-2.1.html
+
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ Lesser General Public License for more details.
+
+ Contributors:
+     Rob Watson ( rmawatson [at] hotmail )
+*/
+
+/* ULGateHandler.ulp generated on 17/17/13 13:16:03 */
+
+#include "ULSupport.ulp"
+#include "ULSymbolHandler.ulp"
+
+string ULGateHandler(UL_GATE Gate,string currentPath, string argument, char cacheMode)
+{
+	string baseName = GetFirstPathItem(currentPath);
+	string nextPath = GetNextPath(currentPath);
+	string baseType = GetFirstPathItem(nextPath);
+
+	string cacheResult;
+
+    if (cacheMode == CACHE_MODE_THIS)
+	{
+		cacheResult += intToStr(Gate.addlevel) + "?";
+		cacheResult += Gate.name + "?";
+		cacheResult += intToStr(Gate.swaplevel) + "?";
+		cacheResult += intToStr(Gate.x) + "?";
+		cacheResult += intToStr(Gate.y) + "?";
+		return cacheResult;
+	}
+	else if (baseName == "addlevel")
+		return intToStr(Gate.addlevel);
+	else if (baseName == "name")
+		return Gate.name;
+	else if (baseName == "swaplevel")
+		return intToStr(Gate.swaplevel);
+	else if (baseName == "symbol")
+		return ULSymbolHandler(Gate.symbol , nextPath,argument,0);
+	else if (baseName == "x")
+		return intToStr(Gate.x);
+	else if (baseName == "y")
+		return intToStr(Gate.y);
+	
+	return "ERROR:" + intToStr(ERROR_GATE_HANDLER);
+}

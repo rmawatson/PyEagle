@@ -1,0 +1,126 @@
+/*
+ (C) Copyright 2013 Rob Watson rmawatson [at] hotmail.com  and others.
+
+ All rights reserved. This program and the accompanying materials
+ are made available under the terms of the GNU Lesser General Public License
+ (LGPL) version 2.1 which accompanies this distribution, and is available at
+ http://www.gnu.org/licenses/lgpl-2.1.html
+
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ Lesser General Public License for more details.
+
+ Contributors:
+     Rob Watson ( rmawatson [at] hotmail )
+*/
+
+/* ULElementHandler.ulp generated on 17/17/13 13:16:03 */
+
+#include "ULSupport.ulp"
+#include "ULPackageHandler.ulp"
+#include "ULAttributeHandler.ulp"
+#include "ULTextHandler.ulp"
+#include "ULVariantHandler.ulp"
+
+string ULElementHandler(UL_ELEMENT Element,string currentPath, string argument, char cacheMode)
+{
+	string baseName   = GetFirstPathItem(currentPath);
+	string nextPath   = GetNextPath(currentPath);
+	string baseType = GetFirstPathItem(nextPath);
+	char isLastPath = nextPath ? 0 : 1;
+
+    char   nextCacheMode = cacheMode;
+    string cacheResult;
+
+    if (cacheMode==CACHE_MODE_AHEAD && isLastPath)
+        nextCacheMode = CACHE_MODE_THIS;
+                        
+
+    if (cacheMode == CACHE_MODE_THIS)
+	{
+		cacheResult += realToStr(Element.angle) + "?";
+		cacheResult += escapeStr(Element.column) + "?";
+		cacheResult += intToStr(Element.locked) + "?";
+		cacheResult += intToStr(Element.mirror) + "?";
+		cacheResult += escapeStr(Element.name) + "?";
+		cacheResult += intToStr(Element.populate) + "?";
+		cacheResult += escapeStr(Element.row) + "?";
+		cacheResult += intToStr(Element.smashed) + "?";
+		cacheResult += intToStr(Element.spin) + "?";
+		cacheResult += escapeStr(Element.value) + "?";
+		cacheResult += intToStr(Element.x) + "?";
+		cacheResult += intToStr(Element.y) + "?";
+		return cacheResult;
+	}
+	else if (baseName == "angle")
+		return realToStr(Element.angle);
+	else if (baseName == "attribute")
+		return Element.attribute[argument];
+	else if (baseName == "column")
+		return Element.column;
+	else if (baseName == "locked")
+		return intToStr(Element.locked);
+	else if (baseName == "mirror")
+		return intToStr(Element.mirror);		
+	else if (baseName == "name")
+		return Element.name;	
+	else if (baseName == "package")
+		return ULPackageHandler(Element.package,nextPath,argument,0);
+	else if (baseName == "populate")
+		return intToStr(Element.populate);
+	else if (baseName == "row")
+		return Element.row;
+	else if (baseName == "smashed")
+		return intToStr(Element.smashed);
+	else if (baseName == "spin")
+		return intToStr(Element.spin);		
+	else if (baseName == "value")
+		return Element.value;
+	else if (baseName == "x")
+		return intToStr(Element.x);
+	else if (baseName == "y")
+		return intToStr(Element.y);
+
+	string splitLoopMember[];
+	int accessIndex=0,currentIndex=0;
+	
+	if (!isLastPath)
+	{	
+	    nextPath = GetNextPath(nextPath);
+		strsplit(splitLoopMember,baseType,'^');
+		accessIndex = strtol(splitLoopMember[1]);
+	}
+
+	if (baseName == "attributes"){
+		Element.attributes(Attribute)  { 
+			if (!isLastPath){ if (currentIndex  == accessIndex) { return ULAttributeHandler(Attribute, nextPath,argument,0); } }
+			else if (nextCacheMode==CACHE_MODE_THIS) { cacheResult += ":" + ULAttributeHandler(Attribute, "", "",CACHE_MODE_THIS); } 
+			currentIndex++;
+		}
+		if (nextCacheMode==CACHE_MODE_THIS) return cacheResult;
+		else return intToStr(currentIndex);
+	
+	} else if (baseName == "texts"){
+		Element.texts(Text)  { 
+			if (!isLastPath){ if (currentIndex  == accessIndex) { return ULTextHandler(Text, nextPath,argument,0); } }
+			else if (nextCacheMode==CACHE_MODE_THIS) { cacheResult += ":" + ULTextHandler(Text, "", "",CACHE_MODE_THIS); } 
+			currentIndex++;
+		}
+		if (nextCacheMode==CACHE_MODE_THIS) return cacheResult;
+		else return intToStr(currentIndex);
+	
+	} else if (baseName == "variants"){
+		Element.variants(Variant)  { 
+			if (!isLastPath){ if (currentIndex  == accessIndex) { return ULVariantHandler(Variant, nextPath,argument,0); } }
+			else if (nextCacheMode==CACHE_MODE_THIS) { cacheResult += ":" + ULVariantHandler(Variant, "", "",CACHE_MODE_THIS); } 
+			currentIndex++;
+		}
+		if (nextCacheMode==CACHE_MODE_THIS) return cacheResult;
+		else return intToStr(currentIndex);
+	
+	}
+
+	return "ERROR:" + intToStr(ERROR_ELEMENT_HANDLER);
+		
+}
