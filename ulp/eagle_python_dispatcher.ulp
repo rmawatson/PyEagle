@@ -42,7 +42,7 @@
 
 string EAGLE_LAUNCHER_PATH 		 = "c:\\Projects\\EagleRemote\\eagle_lanucher.exe";
 string EAGLE_PYTHON_PATH         = "C:\\\\Projects\\\\EagleRemote\\\\";
-string EAGLE_PYTHON_DISPATCHER   =	"eagle_python_dispatcher.ulp"
+string EAGLE_PYTHON_DISPATCHER   =	"eagle_python_dispatcher.ulp";
 string PYTHON_EXECUTABLE     	 = "c:\\Python\\Python27\\pythonw.exe";
 
 /* ----- END CUSTOMISE ----- */
